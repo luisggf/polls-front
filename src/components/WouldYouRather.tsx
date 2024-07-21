@@ -1,37 +1,35 @@
 import React, { useState, useEffect, useRef, useCallback } from "react";
-import { getPoll } from "./APIRoute";
 
 const WouldYouRather: React.FC = () => {
   const [hovered, setHovered] = useState<string | null>(null);
-  const [poll, setPoll] = useState<any>(null);
+  const [polls, setPolls] = useState<any[]>([]);
   const [currentIndex, setCurrentIndex] = useState<number>(0);
   const loader = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    const fetchPoll = async () => {
+    const fetchPolls = async () => {
       try {
-        const pollId = "clyuouzoa00006wfh2se5bprd";
-        console.log(pollId);
-
-        const pollData = await getPoll(pollId);
-        console.log(pollData);
-        setPoll(pollData.poll);
+        const response = await fetch("http://localhost:3333/all-polls");
+        if (!response.ok) {
+          throw new Error("COuldnt get response from promise");
+        }
+        const data = await response.json();
+        setPolls(data);
       } catch (error) {
-        console.error("Error fetching poll:", error);
+        console.error("Failed to fetch polls:", error);
       }
     };
-
-    fetchPoll();
+    fetchPolls();
   }, []);
 
   const handleObserver = useCallback(
     (entries: IntersectionObserverEntry[]) => {
       const target = entries[0];
-      if (target.isIntersecting) {
-        setCurrentIndex((prevIndex) => (prevIndex + 1) % poll.options.length);
+      if (target.isIntersecting && polls.length > 0) {
+        setCurrentIndex((prevIndex) => (prevIndex + 1) % polls.length);
       }
     },
-    [poll?.options.length]
+    [polls.length]
   );
 
   useEffect(() => {
@@ -48,13 +46,14 @@ const WouldYouRather: React.FC = () => {
   }, [handleObserver]);
 
   const handleKeyDown = (event: KeyboardEvent) => {
-    if (event.key === "ArrowDown") {
-      setCurrentIndex((prevIndex) => (prevIndex + 1) % poll.options.length);
-    } else if (event.key === "ArrowUp") {
-      setCurrentIndex(
-        (prevIndex) =>
-          (prevIndex - 1 + poll.options.length) % poll.options.length
-      );
+    if (polls.length > 0) {
+      if (event.key === "ArrowDown") {
+        setCurrentIndex((prevIndex) => (prevIndex + 1) % polls.length);
+      } else if (event.key === "ArrowUp") {
+        setCurrentIndex(
+          (prevIndex) => (prevIndex - 1 + polls.length) % polls.length
+        );
+      }
     }
   };
 
@@ -63,11 +62,18 @@ const WouldYouRather: React.FC = () => {
     return () => {
       window.removeEventListener("keydown", handleKeyDown);
     };
-  }, [poll?.options.length]);
+  }, [polls.length]);
 
-  if (!poll) {
-    return <div>Loading...</div>;
+  if (polls.length === 0) {
+    return (
+      <div className="text-white font-bold animate-pulse text-2xl">
+        Loading...
+      </div>
+    );
   }
+
+  const currentPoll = polls[currentIndex];
+  const options = currentPoll?.options ?? [];
 
   return (
     <div className="w-full max-w-2xl mx-auto p-6 text-white">
@@ -85,7 +91,7 @@ const WouldYouRather: React.FC = () => {
             style={{ height: "150px" }}
           >
             <p className="text-2xl font-bold font-custom truncate">
-              {poll.options[0].title}
+              {options[0]?.title}
             </p>
           </div>
           <div
@@ -108,7 +114,7 @@ const WouldYouRather: React.FC = () => {
             style={{ height: "150px" }}
           >
             <p className="text-2xl font-bold font-custom truncate">
-              {poll.options[1].title}
+              {options[1]?.title}
             </p>
           </div>
         </div>
