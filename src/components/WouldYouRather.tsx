@@ -1,7 +1,6 @@
 import React, { useState, useEffect, useRef, useCallback } from "react";
 import Cookies from "js-cookie";
 import { toast } from "sonner";
-import io from "socket.io-client";
 
 interface PollOption {
   id: string;
@@ -26,7 +25,7 @@ const WouldYouRather: React.FC = () => {
     optionTitle: string;
   } | null>(null);
   const loader = useRef<HTMLDivElement>(null);
-  const socketRef = useRef<any>(null);
+  const wsRef = useRef<WebSocket | null>(null);
 
   useEffect(() => {
     const fetchPolls = async () => {
@@ -48,23 +47,40 @@ const WouldYouRather: React.FC = () => {
     fetchPolls();
   }, []);
 
-  useEffect(() => {
-    // Initialize WebSocket connection
-    socketRef.current = io("http://localhost:3333");
-    socketRef.current.on("voteUpdate", (updatedPoll: Poll) => {
+  const setupWebSocket = (pollId: string) => {
+    wsRef.current = new WebSocket(
+      `ws://localhost:3333/polls/${pollId}/results`
+    );
+
+    wsRef.current.onmessage = (event) => {
+      console.log(`WebSocket message received: ${event.data}`);
+      const { pollId, pollOptionId, votes } = JSON.parse(event.data);
       setPolls((prevPolls) =>
         prevPolls.map((poll) =>
-          poll.id === updatedPoll.id ? updatedPoll : poll
+          poll.id === pollId
+            ? {
+                ...poll,
+                options: poll.options.map((option) =>
+                  option.id === pollOptionId
+                    ? { ...option, score: votes }
+                    : option
+                ),
+              }
+            : poll
         )
       );
-    });
-
-    return () => {
-      if (socketRef.current) {
-        socketRef.current.disconnect();
-      }
     };
-  }, []);
+
+    wsRef.current.onopen = () => {
+      console.log("WebSocket connection established");
+    };
+  };
+
+  useEffect(() => {
+    if (polls.length > 0) {
+      setupWebSocket(polls[currentIndex].id);
+    }
+  }, [polls, currentIndex]);
 
   const handleObserver = useCallback(
     (entries: IntersectionObserverEntry[]) => {
@@ -124,7 +140,6 @@ const WouldYouRather: React.FC = () => {
       toast.error("You already voted on this poll!");
       return;
     }
-
     // Optimistically update local state
     setPolls((prevPolls) =>
       prevPolls.map((poll) =>
@@ -163,7 +178,8 @@ const WouldYouRather: React.FC = () => {
       );
 
       if (!response.ok) {
-        throw new Error("Failed to vote");
+        const data = await response.json();
+        alert(data.message || "Failed to vote. Please try again.");
       }
     } catch (error) {
       console.error("Failed to vote:", error);
@@ -245,12 +261,12 @@ const WouldYouRather: React.FC = () => {
             <p className="text-2xl font-bold font-custom">OR</p>
           </div>
         </div>
+        {lastVoter && (
+          <span className="block mt-4 text-center text-sm text-gray-400">
+            {lastVoter.name} has voted "{lastVoter.optionTitle}"
+          </span>
+        )}
       </div>
-      {lastVoter && (
-        <div className="text-center text-white mt-4">
-          {lastVoter.name} has voted "{lastVoter.optionTitle}"
-        </div>
-      )}
       <div ref={loader} className="loader h-5"></div>
     </div>
   );
