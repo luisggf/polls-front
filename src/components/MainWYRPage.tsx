@@ -21,12 +21,15 @@ const LandingPage: React.FC = () => {
   const [animationDirection, setAnimationDirection] = useState<
     "left" | "right"
   >("right");
+  const [triggerPulse, setTriggerPulse] = useState(false);
 
   const handleAnimationReset = () => {
     setAnimateOut(false);
   };
 
   const switchPoll = (direction: "left" | "right") => {
+    setTriggerPulse(true); // Trigger pulse animation
+    setTimeout(() => setTriggerPulse(false), 1000);
     setAnimationDirection(direction);
     setAnimateOut(true);
     setTimeout(() => {
@@ -38,13 +41,6 @@ const LandingPage: React.FC = () => {
       handleAnimationReset();
     }, 500);
   };
-
-  useEffect(() => {
-    const timer = setTimeout(() => {
-      switchPoll("left");
-    }, 5000);
-    return () => clearTimeout(timer);
-  }, [currentPollIndex]);
 
   useEffect(() => {
     const fetchPopularPolls = async () => {
@@ -115,7 +111,18 @@ const LandingPage: React.FC = () => {
     }
   }, [polls, currentPollIndex]);
 
+  useEffect(() => {
+    if (polls.length > 0) {
+      const timer = setTimeout(() => {
+        switchPoll("left");
+      }, 5000);
+      return () => clearTimeout(timer);
+    }
+  }, [currentPollIndex, polls.length]);
+
   const handlePollChange = (index: number) => {
+    setTriggerPulse(true); // Trigger pulse animation
+    setTimeout(() => setTriggerPulse(false), 1000);
     if (index > currentPollIndex) {
       setAnimationDirection("right");
     } else {
@@ -136,13 +143,19 @@ const LandingPage: React.FC = () => {
   const currentPoll = polls[currentPollIndex];
 
   return (
-    <div className="min-h-screen text-white flex flex-col justify-between items-center py-10">
+    <div className="min-h-screen text-white flex flex-col justify-between items-center py-10 relative">
+      {/* SVG Background */}
+      <div className="absolute top-1/2 right-1/3 size-3/4 transform -translate-y-1/2 -z-10 opacity-5">
+        <img src="../../src/assets/abstract2.svg" alt="Abstract Background" />
+      </div>
+
       <div className="text-center">
         <h1 className="text-6xl font-extrabold tracking-tight">WOULD YOU </h1>
         <span className="text-transparent text-9xl font-black bg-clip-text bg-custom-hot-cold-gradient">
           RATHER
         </span>
       </div>
+
       <div className="flex space-x-10">
         <div className="relative">
           <div className="relative z-10">
@@ -155,10 +168,11 @@ const LandingPage: React.FC = () => {
             </p>
           </div>
         </div>
-        <div className="flex w-1/2 h-2/3 flex-col items-center">
+
+        <div className="flex flex-col items-center">
           <p className="mb-1 text-gray-400 text-sm">Most popular</p>
           <div
-            className={`grid grid-cols-2 gap-x-6 gap-y-1 transition-all duration-500 ease-in-out ${
+            className={`grid grid-cols-2 gap-x-3 gap-y-1 transition-all duration-500 ease-in-out ${
               animateOut
                 ? animationDirection === "right"
                   ? "animate-slideOutRight opacity-0"
@@ -171,7 +185,7 @@ const LandingPage: React.FC = () => {
             {currentPoll.options.map((option, index) => (
               <div
                 key={option.id}
-                className={`w-30 h-20 p-3 flex items-center justify-center ${
+                className={`p-3 flex items-center justify-center ${
                   index === 0
                     ? "bg-custom-hot-gradient"
                     : "bg-custom-cold-gradient"
@@ -192,7 +206,11 @@ const LandingPage: React.FC = () => {
             ))}
           </div>
 
-          <div className="mt-1 flex container items-center">
+          <div
+            className={`mt-1 flex container items-center ${
+              triggerPulse ? "animate-pulseSmooth" : ""
+            }`}
+          >
             <p className="ml-4 text-sm text-gray-400 flex-1 basis-1/3">
               Votos:{" "}
               {currentPoll.options.reduce(
