@@ -1,10 +1,9 @@
-// NamePopUp.tsx
 import { X, CheckCircle } from "lucide-react";
 import * as Dialog from "@radix-ui/react-dialog";
 import React, { useState } from "react";
 import { toast } from "sonner";
 import Cookies from "js-cookie";
-import { useNavigate } from "react-router-dom"; // Import useNavigate for navigation
+import { useNavigate } from "react-router-dom";
 
 export function NamePopUp(): JSX.Element {
   const [isSubmitted, setIsSubmitted] = useState(false); // State to manage form submission
@@ -21,13 +20,12 @@ export function NamePopUp(): JSX.Element {
       // Save username in cookies
       Cookies.set("username", username.trim(), { expires: 30 });
 
-      // Navigate to the WouldYouRather component
-      navigate("/would-you-rather");
-
-      // Hide the success state after a few seconds
+      // Wait for the animation to complete before navigating
       setTimeout(() => {
-        setIsSubmitted(false); // Reset form state after a delay
-      }, 2000);
+        // Navigate to the WouldYouRather component
+        navigate("/would-you-rather");
+        setIsSubmitted(false); // Reset form state after navigation
+      }, 1000); // Adjust the delay to match your animation duration (e.g., 1000ms)
     } else {
       // Show toast notification if username is empty
       toast.error("Nickname is required!"); // Display error message
@@ -82,15 +80,15 @@ export function NamePopUp(): JSX.Element {
                 />
               </div>
               <button
-                className={`w-full rounded-lg bg-slate-800 text-slate-200 py-2 text-sm font-medium transition-all ${
+                className={`w-full rounded-lg ${
                   isSubmitted
-                    ? "animate-bounceIn bg-red-500"
-                    : "hover:bg-red-500"
-                }`}
+                    ? "bg-red-500 animate-bounceIn"
+                    : "bg-slate-800 hover:bg-red-500"
+                } text-slate-200 py-2 text-sm font-medium transition-all`}
                 type="submit"
               >
                 {isSubmitted ? (
-                  <CheckCircle className="w-5 h-5 mx-auto bg-red-500" />
+                  <CheckCircle className="w-5 h-5 mx-auto" />
                 ) : (
                   "Submit"
                 )}
