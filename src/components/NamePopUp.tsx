@@ -1,11 +1,15 @@
-import { X, Check, CheckCircle } from "lucide-react";
+// NamePopUp.tsx
+import { X, CheckCircle } from "lucide-react";
 import * as Dialog from "@radix-ui/react-dialog";
 import React, { useState } from "react";
 import { toast } from "sonner";
+import Cookies from "js-cookie";
+import { useNavigate } from "react-router-dom"; // Import useNavigate for navigation
 
 export function NamePopUp(): JSX.Element {
   const [isSubmitted, setIsSubmitted] = useState(false); // State to manage form submission
   const [username, setUsername] = useState(""); // State to manage input field
+  const navigate = useNavigate(); // Hook for navigation
 
   // Function to handle form submission
   const handleSubmit = (event: React.FormEvent) => {
@@ -13,6 +17,12 @@ export function NamePopUp(): JSX.Element {
 
     if (username.trim()) {
       setIsSubmitted(true); // Set form as submitted to trigger animation
+
+      // Save username in cookies
+      Cookies.set("username", username.trim(), { expires: 30 });
+
+      // Navigate to the WouldYouRather component
+      navigate("/would-you-rather");
 
       // Hide the success state after a few seconds
       setTimeout(() => {
@@ -23,6 +33,7 @@ export function NamePopUp(): JSX.Element {
       toast.error("Nickname is required!"); // Display error message
     }
   };
+
   return (
     <Dialog.Root>
       <Dialog.Trigger asChild>

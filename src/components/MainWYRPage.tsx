@@ -57,58 +57,38 @@ const LandingPage: React.FC = () => {
     fetchPopularPolls();
   }, []);
 
+  const setupWebSocket = (pollId: string) => {
+    wsRef.current = new WebSocket(
+      `ws://localhost:3333/polls/${pollId}/results`
+    );
+
+    wsRef.current.onmessage = (event) => {
+      console.log(`WebSocket message received: ${event.data}`);
+      const { pollId, pollOptionId, votes } = JSON.parse(event.data);
+      setPolls((prevPolls) =>
+        prevPolls.map((poll) =>
+          poll.id === pollId
+            ? {
+                ...poll,
+                options: poll.options.map((option) =>
+                  option.id === pollOptionId
+                    ? { ...option, score: votes }
+                    : option
+                ),
+              }
+            : poll
+        )
+      );
+    };
+
+    wsRef.current.onopen = () => {
+      console.log("WebSocket connection established");
+    };
+  };
+
   useEffect(() => {
     if (polls.length > 0) {
-      const setupWebSocket = (pollId: string) => {
-        wsRef.current = new WebSocket(
-          `ws://localhost:3333/polls/${pollId}/results`
-        );
-
-        wsRef.current.onmessage = (event) => {
-          const { pollId, pollOptionId, votes } = JSON.parse(event.data);
-          setPolls((prevPolls) =>
-            prevPolls.map((poll) =>
-              poll.id === pollId
-                ? {
-                    ...poll,
-                    options: poll.options.map((option) =>
-                      option.id === pollOptionId
-                        ? { ...option, score: votes }
-                        : option
-                    ),
-                  }
-                : poll
-            )
-          );
-        };
-
-        wsRef.current.onopen = () => {
-          console.log("WebSocket connection established");
-        };
-
-        wsRef.current.onerror = (error) => {
-          console.error("WebSocket error:", error);
-        };
-
-        wsRef.current.onclose = () => {
-          console.log("WebSocket connection closed");
-        };
-      };
-
       setupWebSocket(polls[currentPollIndex].id);
-
-      intervalRef.current = setInterval(() => {
-        switchPoll("left");
-      }, 5000);
-
-      return () => {
-        if (wsRef.current) {
-          wsRef.current.close();
-        }
-        if (intervalRef.current) {
-          clearInterval(intervalRef.current);
-        }
-      };
     }
   }, [polls, currentPollIndex]);
 
