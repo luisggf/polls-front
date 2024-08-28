@@ -44,6 +44,33 @@ module.exports = {
           },
           "50%": { opacity: 0.6 },
         },
+        bounceIn: {
+          "0%, 20%, 40%, 60%, 80%, 100%": {
+            "transition-timing-function":
+              "cubic-bezier(0.215, 0.610, 0.355, 1.000)",
+          },
+          "0%": {
+            opacity: "0",
+            transform: "scale3d(0.3, 0.3, 0.3)",
+          },
+          "20%": {
+            transform: "scale3d(1.1, 1.1, 1.1)",
+          },
+          "40%": {
+            transform: "scale3d(0.9, 0.9, 0.9)",
+          },
+          "60%": {
+            opacity: "1",
+            transform: "scale3d(1.03, 1.03, 1.03)",
+          },
+          "80%": {
+            transform: "scale3d(0.97, 0.97, 0.97)",
+          },
+          "100%": {
+            opacity: "1",
+            transform: "scale3d(1, 1, 1)",
+          },
+        },
       },
       animation: {
         slideInLeft: "slideInLeft 0.5s ease-out forwards",
@@ -52,6 +79,7 @@ module.exports = {
         slideOutRight: "slideOutRight 0.5s ease-out forwards",
         pulseSmooth: "pulseSmooth 1s ease-in-out",
         pulseGradient: "pulseGradient 3s infinite",
+        bounceIn: "bounceIn 1s both",
       },
     },
   },

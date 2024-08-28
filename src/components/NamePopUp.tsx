@@ -1,7 +1,28 @@
-import { X } from "lucide-react";
+import { X, Check, CheckCircle } from "lucide-react";
 import * as Dialog from "@radix-ui/react-dialog";
+import React, { useState } from "react";
+import { toast } from "sonner";
 
 export function NamePopUp(): JSX.Element {
+  const [isSubmitted, setIsSubmitted] = useState(false); // State to manage form submission
+  const [username, setUsername] = useState(""); // State to manage input field
+
+  // Function to handle form submission
+  const handleSubmit = (event: React.FormEvent) => {
+    event.preventDefault(); // Prevent default form submission
+
+    if (username.trim()) {
+      setIsSubmitted(true); // Set form as submitted to trigger animation
+
+      // Hide the success state after a few seconds
+      setTimeout(() => {
+        setIsSubmitted(false); // Reset form state after a delay
+      }, 2000);
+    } else {
+      // Show toast notification if username is empty
+      toast.error("Nickname is required!"); // Display error message
+    }
+  };
   return (
     <Dialog.Root>
       <Dialog.Trigger asChild>
@@ -20,8 +41,8 @@ export function NamePopUp(): JSX.Element {
       <Dialog.Portal>
         <Dialog.Overlay className="inset-0 fixed bg-black/70" />
         <Dialog.Content className="overflow-hidden fixed inset-0 w-full flex flex-col items-center justify-center ">
-          <div className="relative rounded-xl  bg-gray-900 shadow-sm w-96 p-10 space-y-10">
-            <Dialog.Close className="absolute right-0 top-0 p-1 text-slate-400 hover:text-red-500 ">
+          <div className="relative rounded-xl bg-gray-900 shadow-sm w-96 p-10 space-y-10">
+            <Dialog.Close className="absolute right-0 top-0 p-1 text-slate-400 hover:text-red-500">
               <X className="size-4" />
             </Dialog.Close>
             <div className="text-left">
@@ -32,7 +53,7 @@ export function NamePopUp(): JSX.Element {
                 </span>
               </h3>
             </div>
-            <form className="space-y-4">
+            <form className="space-y-4" onSubmit={handleSubmit}>
               <div className="space-y-1">
                 <label
                   className="text-sm text-slate-200 font-normal leading-none"
@@ -45,14 +66,23 @@ export function NamePopUp(): JSX.Element {
                   id="username"
                   placeholder="Enter a nickname"
                   type="text"
-                  required
+                  value={username}
+                  onChange={(e) => setUsername(e.target.value)}
                 />
               </div>
               <button
-                className="w-full rounded-lg bg-slate-800 text-slate-200 py-2 text-sm font-medium hover:bg-red-500 transition-colors"
+                className={`w-full rounded-lg bg-slate-800 text-slate-200 py-2 text-sm font-medium transition-all ${
+                  isSubmitted
+                    ? "animate-bounceIn bg-red-500"
+                    : "hover:bg-red-500"
+                }`}
                 type="submit"
               >
-                Submit
+                {isSubmitted ? (
+                  <CheckCircle className="w-5 h-5 mx-auto bg-red-500" />
+                ) : (
+                  "Submit"
+                )}
               </button>
             </form>
           </div>
