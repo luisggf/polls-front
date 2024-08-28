@@ -1,5 +1,6 @@
 import React from "react";
 import WouldYouRather from "./components/WouldYouRather";
+import "@radix-ui/themes/styles.css";
 import WouldYouRatherLanding from "./components/MainWYRPage";
 const App: React.FC = () => {
   return (

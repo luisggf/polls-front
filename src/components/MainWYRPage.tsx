@@ -1,4 +1,5 @@
 import React, { useEffect, useRef, useState } from "react";
+import { NamePopUp } from "./NamePopUp.tsx";
 
 interface PollOption {
   id: string;
@@ -145,28 +146,24 @@ const LandingPage: React.FC = () => {
   return (
     <div className="min-h-screen text-white flex flex-col justify-between items-center py-10 relative">
       {/* SVG Background */}
-      <div className="absolute top-1/2 right-1/3 size-3/4 transform -translate-y-1/2 -z-10 opacity-5">
+      <div className="absolute top-1/2 right-1/3 size-3/4 transform -translate-y-1/2 opacity-5">
         <img src="../../src/assets/abstract2.svg" alt="Abstract Background" />
       </div>
-
       <div className="text-center">
         <h1 className="text-6xl font-extrabold tracking-tight">WOULD YOU </h1>
         <span className="text-transparent text-9xl font-black bg-clip-text bg-custom-hot-cold-gradient">
           RATHER
         </span>
       </div>
-
       <div className="flex space-x-10">
-        <div className="relative">
-          <div className="relative z-10">
-            <p className="mt-4 text-2xl font-extrabold">
-              INTERAJA, RESPONDA, VEJA
-            </p>
-            <p className="text-sm text-gray-400 max-w-xs mx-auto">
-              Lorem Ipsum is simply dummy text of the printing and typesetting
-              industry.
-            </p>
-          </div>
+        <div>
+          <p className="mt-4 text-2xl font-extrabold">
+            ENGAGE, CHOOSE, DISCOVER
+          </p>
+          <p className="text-sm text-gray-400 max-w-xs mx-auto">
+            Dive into intriguing questions and see what choices others make.
+            What would you rather?
+          </p>
         </div>
 
         <div className="flex flex-col items-center">
@@ -234,16 +231,7 @@ const LandingPage: React.FC = () => {
           </div>
         </div>
       </div>
-      <button
-        className="py-6 px-14 rounded-lg text-md font-semibold tracking-wide text-grey-200 bg-transparent border-2"
-        style={{
-          borderImageSource:
-            "linear-gradient(80deg, #EF2525 20%, #FF5500 35%, #FF753B 45%, #00B3ff 60%, #0093ff 80%, #005EFE 100%)",
-          borderImageSlice: 1,
-        }}
-      >
-        Start Now...
-      </button>
+      <NamePopUp></NamePopUp>
     </div>
   );
 };

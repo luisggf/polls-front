@@ -38,6 +38,12 @@ module.exports = {
           "0%, 100%": { opacity: 1 },
           "50%": { opacity: 0.5 },
         },
+        pulseGradient: {
+          "0%, 100%": {
+            opacity: 1,
+          },
+          "50%": { opacity: 0.6 },
+        },
       },
       animation: {
         slideInLeft: "slideInLeft 0.5s ease-out forwards",
@@ -45,6 +51,7 @@ module.exports = {
         slideOutLeft: "slideOutLeft 0.5s ease-out forwards",
         slideOutRight: "slideOutRight 0.5s ease-out forwards",
         pulseSmooth: "pulseSmooth 1s ease-in-out",
+        pulseGradient: "pulseGradient 3s infinite",
       },
     },
   },
