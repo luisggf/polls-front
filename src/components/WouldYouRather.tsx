@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef, useCallback } from "react";
+import { useState, useEffect, useRef, useCallback } from "react";
 import Cookies from "js-cookie";
 import { toast } from "sonner";
 
@@ -14,7 +14,7 @@ interface Poll {
   options: PollOption[];
 }
 
-const WouldYouRather: React.FC = () => {
+export default function WouldYouRather() {
   const [hovered, setHovered] = useState<string | null>(null);
   const [polls, setPolls] = useState<Poll[]>([]);
   const [currentIndex, setCurrentIndex] = useState<number>(0);
@@ -24,6 +24,8 @@ const WouldYouRather: React.FC = () => {
     name: string;
     optionTitle: string;
   } | null>(null);
+  const [animationClass, setAnimationClass] = useState<string>("");
+
   const loader = useRef<HTMLDivElement>(null);
   const wsRef = useRef<WebSocket | null>(null);
 
@@ -109,12 +111,18 @@ const WouldYouRather: React.FC = () => {
     if (polls.length > 0) {
       if (event.key === "ArrowDown") {
         setTransitioning(true);
-        setCurrentIndex((prevIndex) => (prevIndex + 1) % polls.length);
+        setAnimationClass("animate__animated animate__fadeInDown");
+        setTimeout(() => {
+          setCurrentIndex((prevIndex) => (prevIndex + 1) % polls.length);
+        }, 150); // delay for fadeOut animation before changing index
       } else if (event.key === "ArrowUp") {
         setTransitioning(true);
-        setCurrentIndex(
-          (prevIndex) => (prevIndex - 1 + polls.length) % polls.length
-        );
+        setAnimationClass("animate__animated animate__fadeInUp");
+        setTimeout(() => {
+          setCurrentIndex(
+            (prevIndex) => (prevIndex - 1 + polls.length) % polls.length
+          );
+        }, 150); // delay for fadeOut animation before changing index
       }
     }
   };
@@ -130,7 +138,8 @@ const WouldYouRather: React.FC = () => {
     if (transitioning) {
       const timer = setTimeout(() => {
         setTransitioning(false);
-      }, 300); // Matches the duration of the transition
+        setAnimationClass(""); // reset animation class after transition
+      }, 500); // Matches the duration of the transition
       return () => clearTimeout(timer);
     }
   }, [transitioning]);
@@ -140,6 +149,9 @@ const WouldYouRather: React.FC = () => {
       toast.error("You already voted on this poll!");
       return;
     }
+
+    const voterName = Cookies.get("username") || "Anonymous";
+
     // Optimistically update local state
     setPolls((prevPolls) =>
       prevPolls.map((poll) =>
@@ -162,8 +174,17 @@ const WouldYouRather: React.FC = () => {
       return updated;
     });
 
-    // Simulate last voter for demonstration purposes
-    setLastVoter({ name: "Luis", optionTitle: "Lose a leg" });
+    // Set the last voter with the name from the cookies
+    const selectedOption = polls
+      .find((poll) => poll.id === pollId)
+      ?.options.find((option) => option.id === pollOptionId)?.title;
+
+    setLastVoter({ name: voterName, optionTitle: selectedOption || "" });
+
+    // Set a timeout to remove the last voter message after 5 seconds
+    setTimeout(() => {
+      setLastVoter(null);
+    }, 5000);
 
     try {
       const response = await fetch(
@@ -208,68 +229,76 @@ const WouldYouRather: React.FC = () => {
   const options = calculatePercentages(currentPoll?.options ?? []);
 
   return (
-    <div className="w-full max-w-2xl mx-auto p-6 text-white">
-      <div className="mb-10">
-        <h1 className="text-4xl font-bold text-center mb-6 font-custom">
-          WOULD YOU RATHER
-        </h1>
-        <div
-          className={`flex items-center justify-center relative space-x-3 transition-opacity duration-300 ${
-            transitioning ? "opacity-0" : "opacity-100"
-          }`}
-        >
-          {options.map((option, index) => (
-            <div
-              key={option.id}
-              className={`option-box p-10 ${
-                index === 0
-                  ? "bg-custom-hot-gradient"
-                  : "bg-custom-cold-gradient"
-              } text-white text-center rounded-lg cursor-pointer transition-all duration-1500 overflow-hidden ${
-                hovered === (index === 0 ? "left" : "right") ? "w-3/5" : "w-2/5"
-              }`}
-              onMouseEnter={() => setHovered(index === 0 ? "left" : "right")}
-              onMouseLeave={() => setHovered(null)}
-              onClick={() => handleVote(currentPoll.id, option.id)}
-              style={{ height: "150px" }}
-            >
-              <p className="text-2xl font-bold font-custom truncate">
-                {option.title}
-              </p>
-              {votedPolls.includes(currentPoll.id) && (
-                <p
-                  className={`absolute overflow-visible ${
-                    index === 0
-                      ? "bottom-full-minus-1 left-1/4 mt-14"
-                      : "top-full-minus-1 right-1/4 mt-14"
-                  } bg-white text-black rounded-full font-custom text-lg p-3 font-bold shadow-lg`}
-                >
-                  {option.percentage}%
-                </p>
-              )}
-            </div>
-          ))}
-          <div
-            className={`absolute p-3 text-white bg-gray-900 rounded-full flex items-center justify-center transition-transform duration-1500 ${
-              hovered === "right"
-                ? "-translate-x-16"
-                : hovered === "left"
-                ? "translate-x-16"
-                : ""
-            }`}
-          >
-            <p className="text-2xl font-bold font-custom">OR</p>
-          </div>
-        </div>
-        {lastVoter && (
-          <span className="block mt-4 text-center text-sm text-gray-400">
-            {lastVoter.name} has voted "{lastVoter.optionTitle}"
-          </span>
-        )}
+    <div className="w-full max-w-5xl mx-auto p-6">
+      <div className="text-center mb-20">
+        <h1 className="text-6xl font-extrabold tracking-tight">WOULD YOU</h1>
+        <span className="text-transparent text-9xl font-black bg-clip-text bg-custom-hot-cold-gradient">
+          RATHER
+        </span>
       </div>
-      <div ref={loader} className="loader h-5"></div>
+      <div
+        className={`flex items-center justify-center relative space-x-2 transition-opacity duration-300 ${
+          transitioning ? "opacity-0" : "opacity-100"
+        } ${animationClass}`}
+      >
+        {options.map((option, index) => (
+          <div
+            key={option.id}
+            className={`option-box p-10 ${
+              index === 0 ? "bg-custom-hot-gradient" : "bg-custom-cold-gradient"
+            } text-slate-100 text-center rounded-lg cursor-pointer flex items-center justify-center transition-transform duration-500 relative`}
+            onMouseEnter={() => setHovered(index === 0 ? "left" : "right")}
+            onMouseLeave={() => setHovered(null)}
+            onClick={() => handleVote(currentPoll.id, option.id)}
+            style={{
+              height: "250px",
+              width:
+                hovered === (index === 0 ? "left" : "right") ? "60%" : "40%", // Using percentages for dynamic widths
+              transition: "width 0.5s ease-in-out", // Adding transition effect for width change
+            }}
+          >
+            <p className="text-sm text-slate-100 font-medium overflow-hidden drop-shadow-lg text-ellipsis">
+              {option.title}
+            </p>
+            {votedPolls.includes(currentPoll.id) && (
+              <p
+                className="absolute left-1/2 transform -translate-x-1/2 bottom-2 bg-white text-slate-900 font-bold py-1 px-3 rounded-full drop-shadow-lg"
+                style={{ width: "auto" }}
+              >
+                {option.percentage}%
+              </p>
+            )}
+          </div>
+        ))}
+
+        <div
+          className={`absolute p-3 text-white bg-gray-900 rounded-full flex items-center justify-center transition-transform duration-1500 ${
+            hovered === "right"
+              ? "-translate-x-24"
+              : hovered === "left"
+              ? "translate-x-24"
+              : ""
+          }`}
+          style={{ transition: "0.5s ease-in-out" }}
+        >
+          <p className="text-2xl font-bold">OR</p>
+        </div>
+      </div>
+
+      {votedPolls.includes(currentPoll.id) && (
+        <p className="absolute left-1/3 bottom-1/5 mt-2 text-slate-400 font-medium text-xs">
+          Already voted
+        </p>
+      )}
+      {lastVoter && (
+        <div className="text-center mt-4">
+          <p className="text-slate-400 font-medium text-xs">
+            {lastVoter.name} just voted for "{lastVoter.optionTitle}"
+          </p>
+        </div>
+      )}
+
+      <div ref={loader} />
     </div>
   );
-};
-
-export default WouldYouRather;
+}

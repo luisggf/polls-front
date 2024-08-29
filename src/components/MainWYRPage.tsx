@@ -16,7 +16,6 @@ interface Poll {
 const LandingPage: React.FC = () => {
   const [polls, setPolls] = useState<Poll[]>([]);
   const [currentPollIndex, setCurrentPollIndex] = useState(0);
-  const intervalRef = useRef<NodeJS.Timeout | null>(null);
   const wsRef = useRef<WebSocket | null>(null);
   const [animateOut, setAnimateOut] = useState(false);
   const [animationDirection, setAnimationDirection] = useState<
@@ -166,11 +165,11 @@ const LandingPage: React.FC = () => {
                   index === 0
                     ? "bg-custom-hot-gradient"
                     : "bg-custom-cold-gradient"
-                } text-white text-center rounded-xl cursor-pointer shadow-sm`}
+                } rounded-xl cursor-pointer`}
                 style={{ width: "200px", height: "120px" }}
               >
                 <p
-                  className="text-sm text-gray-200 overflow-hidden text-ellipsis"
+                  className="text-sm text-gray-100 font-medium overflow-hidden text-ellipsis"
                   style={{
                     whiteSpace: "nowrap",
                     maxWidth: "100%",

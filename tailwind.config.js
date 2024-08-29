@@ -71,6 +71,26 @@ module.exports = {
             transform: "scale3d(1, 1, 1)",
           },
         },
+        fadeInUp: {
+          "0%": {
+            opacity: "0",
+            transform: "translate3d(0, 100%, 0)",
+          },
+          "100%": {
+            opacity: "1",
+            transform: "translate3d(0, 0, 0)",
+          },
+        },
+        fadeInDown: {
+          "0%": {
+            opacity: "0",
+            transform: "translate3d(0, -100%, 0)",
+          },
+          "100%": {
+            opacity: "1",
+            transform: "translate3d(0, 0, 0)",
+          },
+        },
       },
       animation: {
         slideInLeft: "slideInLeft 0.5s ease-out forwards",
@@ -80,6 +100,8 @@ module.exports = {
         pulseSmooth: "pulseSmooth 1s ease-in-out",
         pulseGradient: "pulseGradient 3s infinite",
         bounceIn: "bounceIn 1s both",
+        fadeInUp: "fadeInUp 1s ease-in-out both",
+        fadeInDown: "fadeInDown 1s ease-in-out both",
       },
     },
   },
