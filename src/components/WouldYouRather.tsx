@@ -24,7 +24,7 @@ export default function WouldYouRather() {
     name: string;
     optionTitle: string;
   } | null>(null);
-  const [animationClass, setAnimationClass] = useState<string>("");
+  const [animationDirection, setAnimationDirection] = useState<string>("");
 
   const loader = useRef<HTMLDivElement>(null);
   const wsRef = useRef<WebSocket | null>(null);
@@ -88,7 +88,12 @@ export default function WouldYouRather() {
     (entries: IntersectionObserverEntry[]) => {
       const target = entries[0];
       if (target.isIntersecting && polls.length > 0) {
-        setCurrentIndex((prevIndex) => (prevIndex + 1) % polls.length);
+        setTransitioning(true);
+        setAnimationDirection("right");
+        setTimeout(() => {
+          setCurrentIndex((prevIndex) => (prevIndex + 1) % polls.length);
+          setTransitioning(false);
+        }, 500);
       }
     },
     [polls.length]
@@ -111,18 +116,20 @@ export default function WouldYouRather() {
     if (polls.length > 0) {
       if (event.key === "ArrowDown") {
         setTransitioning(true);
-        setAnimationClass("animate__animated animate__fadeInDown");
+        setAnimationDirection("down");
         setTimeout(() => {
           setCurrentIndex((prevIndex) => (prevIndex + 1) % polls.length);
-        }, 150); // delay for fadeOut animation before changing index
+          setTransitioning(false);
+        }, 500);
       } else if (event.key === "ArrowUp") {
         setTransitioning(true);
-        setAnimationClass("animate__animated animate__fadeInUp");
+        setAnimationDirection("up");
         setTimeout(() => {
           setCurrentIndex(
             (prevIndex) => (prevIndex - 1 + polls.length) % polls.length
           );
-        }, 150); // delay for fadeOut animation before changing index
+          setTransitioning(false);
+        }, 500);
       }
     }
   };
@@ -133,16 +140,6 @@ export default function WouldYouRather() {
       window.removeEventListener("keydown", handleKeyDown);
     };
   }, [polls.length]);
-
-  useEffect(() => {
-    if (transitioning) {
-      const timer = setTimeout(() => {
-        setTransitioning(false);
-        setAnimationClass(""); // reset animation class after transition
-      }, 500); // Matches the duration of the transition
-      return () => clearTimeout(timer);
-    }
-  }, [transitioning]);
 
   const handleVote = async (pollId: string, pollOptionId: string) => {
     if (votedPolls.includes(pollId)) {
@@ -237,9 +234,19 @@ export default function WouldYouRather() {
         </span>
       </div>
       <div
-        className={`flex items-center justify-center relative space-x-2 transition-opacity duration-300 ${
-          transitioning ? "opacity-0" : "opacity-100"
-        } ${animationClass}`}
+        className={`flex items-center justify-center relative space-x-2 transition-all duration-500 ease-in-out ${
+          transitioning
+            ? animationDirection === "right"
+              ? "animate-slideOutRight opacity-0"
+              : animationDirection === "down"
+              ? "animate-fadeOutDown opacity-0"
+              : "animate-fadeOutUp opacity-0"
+            : animationDirection === "right"
+            ? "animate-slideInLeft opacity-100"
+            : animationDirection === "down"
+            ? "animate-fadeInDown opacity-100"
+            : "animate-fadeInUp opacity-100"
+        }`}
       >
         {options.map((option, index) => (
           <div
@@ -262,7 +269,7 @@ export default function WouldYouRather() {
             </p>
             {votedPolls.includes(currentPoll.id) && (
               <p
-                className="absolute left-1/2 transform -translate-x-1/2 bottom-2 bg-white text-slate-900 font-bold py-1 px-3 rounded-full drop-shadow-lg"
+                className="absolute left-1/2 transform -translate-x-1/2 bottom-2 bg-white text-slate-900 font-bold p-2 rounded-full drop-shadow-lg"
                 style={{ width: "auto" }}
               >
                 {option.percentage}%
@@ -270,7 +277,6 @@ export default function WouldYouRather() {
             )}
           </div>
         ))}
-
         <div
           className={`absolute p-3 text-white bg-gray-900 rounded-full flex items-center justify-center transition-transform duration-1500 ${
             hovered === "right"
@@ -284,21 +290,12 @@ export default function WouldYouRather() {
           <p className="text-2xl font-bold">OR</p>
         </div>
       </div>
-
-      {votedPolls.includes(currentPoll.id) && (
-        <p className="absolute left-1/3 bottom-1/5 mt-2 text-slate-400 font-medium text-xs">
-          Already voted
-        </p>
-      )}
       {lastVoter && (
-        <div className="text-center mt-4">
-          <p className="text-slate-400 font-medium text-xs">
-            {lastVoter.name} just voted for "{lastVoter.optionTitle}"
-          </p>
+        <div className="w-full bg-white text-center text-xl font-medium text-gray-800 p-2 rounded mt-4">
+          {lastVoter.name} just voted for "{lastVoter.optionTitle}"
         </div>
       )}
-
-      <div ref={loader} />
+      <div ref={loader}></div>
     </div>
   );
 }

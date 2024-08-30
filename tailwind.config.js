@@ -15,7 +15,7 @@ module.exports = {
           "linear-gradient(80deg, #EF2525 20%, #FF5500 35%, #FF753B 45%, #00B3ff 60%, #0093ff 80%, #005EFE 100% )",
       },
       inset: {
-        "-full-minus-1": "calc(-100% - 1px)", // Adjust `1rem` to the value you need
+        "-full-minus-1": "calc(-100% - 1px)",
       },
       keyframes: {
         slideInLeft: {
@@ -91,6 +91,24 @@ module.exports = {
             transform: "translate3d(0, 0, 0)",
           },
         },
+        fadeOutUp: {
+          "0%": {
+            opacity: 1,
+          },
+          "100%": {
+            opacity: 0,
+            transform: "translate3d(0, -100%, 0)",
+          },
+        },
+        fadeOutDown: {
+          "0%": {
+            opacity: 1,
+          },
+          "100%": {
+            opacity: 0,
+            transform: "translate3d(0, 100%, 0)",
+          },
+        },
       },
       animation: {
         slideInLeft: "slideInLeft 0.5s ease-out forwards",
@@ -102,6 +120,8 @@ module.exports = {
         bounceIn: "bounceIn 1s both",
         fadeInUp: "fadeInUp 1s ease-in-out both",
         fadeInDown: "fadeInDown 1s ease-in-out both",
+        fadeOutUp: "fadeOutUp 1s both",
+        fadeOutDown: "fadeOutDown 1s both",
       },
     },
   },
