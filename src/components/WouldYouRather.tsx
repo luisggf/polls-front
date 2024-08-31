@@ -20,10 +20,6 @@ export default function WouldYouRather() {
   const [currentIndex, setCurrentIndex] = useState<number>(0);
   const [transitioning, setTransitioning] = useState<boolean>(false);
   const [votedPolls, setVotedPolls] = useState<string[]>([]);
-  const [lastVoter, setLastVoter] = useState<{
-    name: string;
-    optionTitle: string;
-  } | null>(null);
   const [animationDirection, setAnimationDirection] = useState<string>("");
 
   const loader = useRef<HTMLDivElement>(null);
@@ -50,16 +46,31 @@ export default function WouldYouRather() {
   }, []);
 
   const setupWebSocket = (pollId: string) => {
+    // Close any existing WebSocket connection before creating a new one
+    if (wsRef.current) {
+      wsRef.current.close();
+    }
+
     wsRef.current = new WebSocket(
       `ws://localhost:3333/polls/${pollId}/results`
     );
 
     wsRef.current.onmessage = (event) => {
       console.log(`WebSocket message received: ${event.data}`);
-      const { pollId, pollOptionId, votes } = JSON.parse(event.data);
+      const {
+        pollId: messagePollId,
+        pollOptionId,
+        votes,
+        username,
+      } = JSON.parse(event.data);
+
+      // Ensure that only users watching the relevant poll receive the update
+      if (pollId !== messagePollId) return;
+
+      // Update the polls state with the new vote information
       setPolls((prevPolls) =>
         prevPolls.map((poll) =>
-          poll.id === pollId
+          poll.id === messagePollId
             ? {
                 ...poll,
                 options: poll.options.map((option) =>
@@ -71,10 +82,17 @@ export default function WouldYouRather() {
             : poll
         )
       );
-    };
 
-    wsRef.current.onopen = () => {
-      console.log("WebSocket connection established");
+      // Fetch the title of the option that was voted for
+      const currentPoll = polls.find((poll) => poll.id === messagePollId);
+      const selectedOptionTitle = currentPoll?.options.find(
+        (option) => option.id === pollOptionId
+      )?.title;
+
+      if (username && selectedOptionTitle && currentPoll) {
+        // Ensure toast.info is only triggered once per vote handling
+        toast.info(`${username} just voted for "${selectedOptionTitle}"`);
+      }
     };
   };
 
@@ -147,8 +165,6 @@ export default function WouldYouRather() {
       return;
     }
 
-    const voterName = Cookies.get("username") || "Anonymous";
-
     // Optimistically update local state
     setPolls((prevPolls) =>
       prevPolls.map((poll) =>
@@ -165,23 +181,8 @@ export default function WouldYouRather() {
       )
     );
 
-    setVotedPolls((prev) => {
-      const updated = [...prev, pollId];
-      Cookies.set("votedPolls", JSON.stringify(updated), { expires: 30 });
-      return updated;
-    });
-
-    // Set the last voter with the name from the cookies
-    const selectedOption = polls
-      .find((poll) => poll.id === pollId)
-      ?.options.find((option) => option.id === pollOptionId)?.title;
-
-    setLastVoter({ name: voterName, optionTitle: selectedOption || "" });
-
-    // Set a timeout to remove the last voter message after 5 seconds
-    setTimeout(() => {
-      setLastVoter(null);
-    }, 5000);
+    setVotedPolls((prevVotedPolls) => [...prevVotedPolls, pollId]);
+    Cookies.set("votedPolls", JSON.stringify([...votedPolls, pollId]));
 
     try {
       const response = await fetch(
@@ -191,6 +192,7 @@ export default function WouldYouRather() {
           headers: {
             "Content-Type": "application/json",
           },
+          credentials: "include",
           body: JSON.stringify({ pollOptionId }),
         }
       );
@@ -290,11 +292,7 @@ export default function WouldYouRather() {
           <p className="text-2xl font-bold">OR</p>
         </div>
       </div>
-      {lastVoter && (
-        <div className="w-full bg-white text-center text-xl font-medium text-gray-800 p-2 rounded mt-4">
-          {lastVoter.name} just voted for "{lastVoter.optionTitle}"
-        </div>
-      )}
+
       <div ref={loader}></div>
     </div>
   );
