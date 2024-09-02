@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef, useCallback } from "react";
 import Cookies from "js-cookie";
 import { toast } from "sonner";
+import { LateralMenu } from "./LateralMenu";
 
 interface PollOption {
   id: string;
@@ -228,72 +229,79 @@ export default function WouldYouRather() {
   const options = calculatePercentages(currentPoll?.options ?? []);
 
   return (
-    <div className="w-full max-w-5xl mx-auto p-6">
-      <div className="text-center mb-20">
-        <h1 className="text-6xl font-extrabold tracking-tight">WOULD YOU</h1>
-        <span className="text-transparent text-9xl font-black bg-clip-text bg-custom-hot-cold-gradient">
-          RATHER
-        </span>
+    <>
+      <div className="absolute top-0 left-0 m-4">
+        <LateralMenu></LateralMenu>
       </div>
-      <div
-        className={`flex items-center justify-center relative space-x-2 transition-all duration-500 ease-in-out ${
-          transitioning
-            ? animationDirection === "right"
-              ? "animate-slideOutRight opacity-0"
-              : animationDirection === "down"
-              ? "animate-fadeOutDown opacity-0"
-              : "animate-fadeOutUp opacity-0"
-            : animationDirection === "right"
-            ? "animate-slideInLeft opacity-100"
-            : animationDirection === "down"
-            ? "animate-fadeInDown opacity-100"
-            : "animate-fadeInUp opacity-100"
-        }`}
-      >
-        {options.map((option, index) => (
-          <div
-            key={option.id}
-            className={`option-box p-10 ${
-              index === 0 ? "bg-custom-hot-gradient" : "bg-custom-cold-gradient"
-            } text-slate-100 text-center rounded-lg cursor-pointer flex items-center justify-center transition-transform duration-500 relative`}
-            onMouseEnter={() => setHovered(index === 0 ? "left" : "right")}
-            onMouseLeave={() => setHovered(null)}
-            onClick={() => handleVote(currentPoll.id, option.id)}
-            style={{
-              height: "250px",
-              width:
-                hovered === (index === 0 ? "left" : "right") ? "60%" : "40%", // Using percentages for dynamic widths
-              transition: "width 0.5s ease-in-out", // Adding transition effect for width change
-            }}
-          >
-            <p className="text-sm text-slate-100 font-medium overflow-hidden drop-shadow-lg text-ellipsis">
-              {option.title}
-            </p>
-            {votedPolls.includes(currentPoll.id) && (
-              <p
-                className="absolute left-1/2 transform -translate-x-1/2 bottom-2 bg-white text-slate-900 font-bold p-2 rounded-full drop-shadow-lg"
-                style={{ width: "auto" }}
-              >
-                {option.percentage}%
-              </p>
-            )}
-          </div>
-        ))}
-        <div
-          className={`absolute p-3 text-white bg-gray-900 rounded-full flex items-center justify-center transition-transform duration-1500 ${
-            hovered === "right"
-              ? "-translate-x-24"
-              : hovered === "left"
-              ? "translate-x-24"
-              : ""
-          }`}
-          style={{ transition: "0.5s ease-in-out" }}
-        >
-          <p className="text-2xl font-bold">OR</p>
+      <div className="w-full max-w-5xl mx-auto p-6">
+        <div className="text-center mb-20">
+          <h1 className="text-6xl font-extrabold tracking-tight">WOULD YOU</h1>
+          <span className="text-transparent text-9xl font-black bg-clip-text bg-custom-hot-cold-gradient">
+            RATHER
+          </span>
         </div>
-      </div>
+        <div
+          className={`flex items-center justify-center relative space-x-2 transition-all duration-500 ease-in-out ${
+            transitioning
+              ? animationDirection === "right"
+                ? "animate-slideOutRight opacity-0"
+                : animationDirection === "down"
+                ? "animate-fadeOutDown opacity-0"
+                : "animate-fadeOutUp opacity-0"
+              : animationDirection === "right"
+              ? "animate-slideInLeft opacity-100"
+              : animationDirection === "down"
+              ? "animate-fadeInDown opacity-100"
+              : "animate-fadeInUp opacity-100"
+          }`}
+        >
+          {options.map((option, index) => (
+            <div
+              key={option.id}
+              className={`option-box p-10 ${
+                index === 0
+                  ? "bg-custom-hot-gradient"
+                  : "bg-custom-cold-gradient"
+              } text-slate-100 text-center rounded-lg cursor-pointer flex items-center justify-center transition-transform duration-500 relative`}
+              onMouseEnter={() => setHovered(index === 0 ? "left" : "right")}
+              onMouseLeave={() => setHovered(null)}
+              onClick={() => handleVote(currentPoll.id, option.id)}
+              style={{
+                height: "250px",
+                width:
+                  hovered === (index === 0 ? "left" : "right") ? "60%" : "40%", // Using percentages for dynamic widths
+                transition: "width 0.5s ease-in-out", // Adding transition effect for width change
+              }}
+            >
+              <p className="text-sm text-slate-100 font-medium overflow-hidden drop-shadow-lg text-ellipsis">
+                {option.title}
+              </p>
+              {votedPolls.includes(currentPoll.id) && (
+                <p
+                  className="absolute left-1/2 transform -translate-x-1/2 bottom-2 bg-white text-slate-900 font-bold p-2 rounded-full drop-shadow-lg"
+                  style={{ width: "auto" }}
+                >
+                  {option.percentage}%
+                </p>
+              )}
+            </div>
+          ))}
+          <div
+            className={`absolute p-3 text-white bg-gray-900 rounded-full flex items-center justify-center transition-transform duration-1500 ${
+              hovered === "right"
+                ? "-translate-x-24"
+                : hovered === "left"
+                ? "translate-x-24"
+                : ""
+            }`}
+            style={{ transition: "0.5s ease-in-out" }}
+          >
+            <p className="text-2xl font-bold">OR</p>
+          </div>
+        </div>
 
-      <div ref={loader}></div>
-    </div>
+        <div ref={loader}></div>
+      </div>
+    </>
   );
 }
