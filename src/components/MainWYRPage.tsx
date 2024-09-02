@@ -9,7 +9,6 @@ interface PollOption {
 
 interface Poll {
   id: string;
-  title: string;
   options: PollOption[];
 }
 
