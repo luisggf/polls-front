@@ -1,11 +1,31 @@
 import * as Dialog from "@radix-ui/react-dialog";
+import { X } from "lucide-react";
 import { toast } from "sonner";
 
+interface PollOption {
+  id: string;
+  title: string;
+  score: number;
+}
+
+interface Poll {
+  id: string;
+  options: PollOption[];
+}
+
 export function ManagePollPopUp() {
+  const Poll = {
+    id: "1",
+    options: ["test1", "test2"],
+  };
+  const Poll2 = {
+    id: "1",
+    options: ["test1", "test2"],
+  };
   return (
     <Dialog.Root>
       <Dialog.Trigger asChild>
-        <div className="flex items-center text-grey-200 hover:bg-red-500 hover:text-white rounded-md p-2 ml-1 transition duration-300 hover:fill-white">
+        <button className="flex w-full items-center text-grey-200 hover:bg-red-500 hover:text-white rounded-md p-2 ml-1 transition duration-300 hover:fill-white">
           <svg
             width="24"
             height="24"
@@ -22,11 +42,41 @@ export function ManagePollPopUp() {
             ></path>
           </svg>
           Manage Polls
-        </div>
+        </button>
       </Dialog.Trigger>
       <Dialog.Portal>
         <Dialog.Overlay className="inset-0 bg-black/70"></Dialog.Overlay>
-        <Dialog.Content></Dialog.Content>
+        <Dialog.Content>
+          <div className="relative rounded-xl bg-gray-900 shadow-sm w-96 p-10 space-y-10">
+            <Dialog.Close className="absolute right-0 top-0 p-1 text-slate-400 hover:text-red-500">
+              <X className="size-4" />
+            </Dialog.Close>
+            <div className="text-left">
+              <h3 className="text-2xl font-medium text-slate-100">
+                Before we{" "}
+                <span className="text-2xl font-black text-red-500">
+                  start...
+                </span>
+              </h3>
+            </div>
+            <form className="space-y-4">
+              <div className="space-y-1">
+                <label
+                  className="text-sm text-slate-200 font-normal leading-none"
+                  htmlFor="username"
+                >
+                  Nickname
+                </label>
+                <input
+                  className="block w-full text-slate-900 rounded-md border border-gray-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-black"
+                  id="username"
+                  placeholder="Enter a nickname"
+                  type="text"
+                />
+              </div>
+            </form>
+          </div>
+        </Dialog.Content>
       </Dialog.Portal>
     </Dialog.Root>
   );

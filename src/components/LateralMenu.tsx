@@ -1,8 +1,9 @@
 import * as Dialog from "@radix-ui/react-dialog";
 import { CreatePollPopUp } from "../components/CreatePollPopUp";
-import { ManagePollPopUp } from "./ManagePollPopUp";
+// import { ManagePollPopUp } from "./ManagePollPopUp";
 import { useNavigate } from "react-router-dom";
 import React from "react";
+import { X } from "lucide-react";
 
 export function LateralMenu() {
   const navigate = useNavigate();
@@ -33,6 +34,18 @@ export function LateralMenu() {
           </div>
         </Dialog.Trigger>
         <Dialog.Content className="bg-slate-800 w-96 p-5 fixed top-0 left-0 h-full shadow-lg">
+          <div className="flex space-x-2 items-center text-center align-middle mb-10">
+            <img
+              className="w-5 rounded-lg"
+              src="https://wouldyourather.app/img/svg/app-icon/would-you-rather.ba38edc5da98bd49107c22981e82470a.svg"
+            />
+            <h1 className="text-slate-400 font-bold text-sm text-center">
+              Would You Rather
+            </h1>
+            <Dialog.Close className="absolute right-0 top-0 p-2 mt-2 text-slate-400 hover:text-red-500">
+              <X className="size-4" />
+            </Dialog.Close>
+          </div>
           <div className="flex flex-col space-y-4">
             <nav className="space-y-4">
               <div className="flex items-center text-grey-200 hover:bg-red-500 hover:text-white rounded-md p-3 transition duration-300 hover:fill-white">
@@ -49,7 +62,7 @@ export function LateralMenu() {
                 </button>
               </div>
               <CreatePollPopUp></CreatePollPopUp>
-              <ManagePollPopUp></ManagePollPopUp>
+              {/* <ManagePollPopUp></ManagePollPopUp> */}
             </nav>
           </div>
         </Dialog.Content>

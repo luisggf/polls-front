@@ -74,7 +74,7 @@ module.exports = {
         fadeInUp: {
           "0%": {
             opacity: "0",
-            transform: "translate3d(0, 100%, 0)",
+            transform: "translate3d(0, 60%, 0)",
           },
           "100%": {
             opacity: "1",
@@ -84,7 +84,7 @@ module.exports = {
         fadeInDown: {
           "0%": {
             opacity: "0",
-            transform: "translate3d(0, -100%, 0)",
+            transform: "translate3d(0, -60%, 0)",
           },
           "100%": {
             opacity: "1",
@@ -97,7 +97,7 @@ module.exports = {
           },
           "100%": {
             opacity: 0,
-            transform: "translate3d(0, -100%, 0)",
+            transform: "translate3d(0, -60%, 0)",
           },
         },
         fadeOutDown: {
@@ -106,7 +106,7 @@ module.exports = {
           },
           "100%": {
             opacity: 0,
-            transform: "translate3d(0, 100%, 0)",
+            transform: "translate3d(0, 60%, 0)",
           },
         },
       },
@@ -118,10 +118,10 @@ module.exports = {
         pulseSmooth: "pulseSmooth 1s ease-in-out",
         pulseGradient: "pulseGradient 3s infinite",
         bounceIn: "bounceIn 1s both",
-        fadeInUp: "fadeInUp 1s ease-in-out both",
-        fadeInDown: "fadeInDown 1s ease-in-out both",
-        fadeOutUp: "fadeOutUp 1s both",
-        fadeOutDown: "fadeOutDown 1s both",
+        fadeInUp: "fadeInUp 0.5s ease-in-out both",
+        fadeInDown: "fadeInDown 0.5s ease-in-out both",
+        fadeOutUp: "fadeOutUp 0.5s both",
+        fadeOutDown: "fadeOutDown 0.5s both",
       },
     },
   },

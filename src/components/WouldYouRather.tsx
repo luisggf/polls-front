@@ -21,32 +21,40 @@ export default function WouldYouRather() {
   const [transitioning, setTransitioning] = useState<boolean>(false);
   const [votedPolls, setVotedPolls] = useState<string[]>([]);
   const [animationDirection, setAnimationDirection] = useState<string>("");
+  const [viewedPollsCount, setViewedPollsCount] = useState<number>(0);
 
   const loader = useRef<HTMLDivElement>(null);
   const wsRef = useRef<WebSocket | null>(null);
+  const offsetRef = useRef<number>(0);
+  const limitRef = useRef<number>(4);
+
+  // Fetch polls with the correct offset and limit
+  const fetchPolls = async (offset: number, limit: number) => {
+    try {
+      const response = await fetch(
+        `http://localhost:3333/polls-scroll?offset=${offset}&limit=${limit}`
+      );
+      if (!response.ok) {
+        throw new Error("Network response was not ok");
+      }
+      const data = await response.json();
+      console.log("Fetched polls:", data);
+      setPolls((prevPolls) => [...prevPolls, ...data]);
+
+      const cookiesVotedPolls = Cookies.get("votedPolls");
+      if (cookiesVotedPolls) {
+        setVotedPolls(JSON.parse(cookiesVotedPolls));
+      }
+    } catch (error) {
+      console.error("Failed to fetch polls:", error);
+    }
+  };
 
   useEffect(() => {
-    const fetchPolls = async () => {
-      try {
-        const response = await fetch("http://localhost:3333/all-polls");
-        if (!response.ok) {
-          throw new Error("Network response was not ok");
-        }
-        const data = await response.json();
-        setPolls(data);
-        const cookiesVotedPolls = Cookies.get("votedPolls");
-        if (cookiesVotedPolls) {
-          setVotedPolls(JSON.parse(cookiesVotedPolls));
-        }
-      } catch (error) {
-        console.error("Failed to fetch polls:", error);
-      }
-    };
-    fetchPolls();
+    fetchPolls(offsetRef.current, limitRef.current);
   }, []);
 
   const setupWebSocket = (pollId: string) => {
-    // Close any existing WebSocket connection before creating a new one
     if (wsRef.current) {
       wsRef.current.close();
     }
@@ -56,7 +64,6 @@ export default function WouldYouRather() {
     );
 
     wsRef.current.onmessage = (event) => {
-      console.log(`WebSocket message received: ${event.data}`);
       const {
         pollId: messagePollId,
         pollOptionId,
@@ -64,10 +71,8 @@ export default function WouldYouRather() {
         username,
       } = JSON.parse(event.data);
 
-      // Ensure that only users watching the relevant poll receive the update
       if (pollId !== messagePollId) return;
 
-      // Update the polls state with the new vote information
       setPolls((prevPolls) =>
         prevPolls.map((poll) =>
           poll.id === messagePollId
@@ -83,14 +88,12 @@ export default function WouldYouRather() {
         )
       );
 
-      // Fetch the title of the option that was voted for
       const currentPoll = polls.find((poll) => poll.id === messagePollId);
       const selectedOptionTitle = currentPoll?.options.find(
         (option) => option.id === pollOptionId
       )?.title;
 
       if (username && selectedOptionTitle && currentPoll) {
-        // Ensure toast.info is only triggered once per vote handling
         toast.info(`${username} just voted for "${selectedOptionTitle}"`);
       }
     };
@@ -105,17 +108,27 @@ export default function WouldYouRather() {
   const handleObserver = useCallback(
     (entries: IntersectionObserverEntry[]) => {
       const target = entries[0];
-      if (target.isIntersecting && polls.length > 0) {
-        setTransitioning(true);
-        setAnimationDirection("right");
-        setTimeout(() => {
-          setCurrentIndex((prevIndex) => (prevIndex + 1) % polls.length);
-          setTransitioning(false);
-        }, 500);
+      if (target.isIntersecting) {
+        handleLoadMore();
       }
     },
     [polls.length]
   );
+
+  const handleLoadMore = () => {
+    setTransitioning(true);
+    setAnimationDirection("right");
+    setTimeout(() => {
+      setCurrentIndex((prevIndex) => (prevIndex + 1) % polls.length);
+      setTransitioning(false);
+      setViewedPollsCount((prevCount) => prevCount + 1);
+
+      if (viewedPollsCount + 1 >= offsetRef.current + limitRef.current) {
+        offsetRef.current += limitRef.current;
+        fetchPolls(offsetRef.current, limitRef.current);
+      }
+    }, 500);
+  };
 
   useEffect(() => {
     const option = {
@@ -136,16 +149,24 @@ export default function WouldYouRather() {
         setTransitioning(true);
         setAnimationDirection("down");
         setTimeout(() => {
-          setCurrentIndex((prevIndex) => (prevIndex + 1) % polls.length);
+          const nextIndex = (currentIndex + 1) % polls.length;
+          setCurrentIndex(nextIndex);
           setTransitioning(false);
+          setViewedPollsCount((prevCount) => {
+            const newCount = prevCount + 1;
+            if (newCount >= offsetRef.current + limitRef.current) {
+              offsetRef.current += limitRef.current;
+              fetchPolls(offsetRef.current, limitRef.current);
+            }
+            return newCount;
+          });
         }, 500);
       } else if (event.key === "ArrowUp") {
         setTransitioning(true);
         setAnimationDirection("up");
         setTimeout(() => {
-          setCurrentIndex(
-            (prevIndex) => (prevIndex - 1 + polls.length) % polls.length
-          );
+          const prevIndex = (currentIndex - 1 + polls.length) % polls.length;
+          setCurrentIndex(prevIndex);
           setTransitioning(false);
         }, 500);
       }
@@ -157,7 +178,7 @@ export default function WouldYouRather() {
     return () => {
       window.removeEventListener("keydown", handleKeyDown);
     };
-  }, [polls.length]);
+  }, [polls.length, currentIndex]);
 
   const handleVote = async (pollId: string, pollOptionId: string) => {
     if (votedPolls.includes(pollId)) {
@@ -165,7 +186,6 @@ export default function WouldYouRather() {
       return;
     }
 
-    // Optimistically update local state
     setPolls((prevPolls) =>
       prevPolls.map((poll) =>
         poll.id === pollId
@@ -268,8 +288,8 @@ export default function WouldYouRather() {
               style={{
                 height: "250px",
                 width:
-                  hovered === (index === 0 ? "left" : "right") ? "60%" : "40%", // Using percentages for dynamic widths
-                transition: "width 0.5s ease-in-out", // Adding transition effect for width change
+                  hovered === (index === 0 ? "left" : "right") ? "60%" : "40%",
+                transition: "width 0.5s ease-in-out",
               }}
             >
               <p className="text-sm text-slate-100 font-medium overflow-hidden drop-shadow-lg text-ellipsis">
