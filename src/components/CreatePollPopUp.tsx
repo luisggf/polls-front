@@ -1,6 +1,6 @@
 import { X, CheckCircle } from "lucide-react";
 import * as Dialog from "@radix-ui/react-dialog";
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { toast } from "sonner";
 import { ManagePollPopUp } from "./ManagePollPopUp";
 
@@ -30,6 +30,13 @@ export function CreatePollPopUp(): JSX.Element {
         await response.json();
         toast.success("Poll created successfully!");
         setIsSubmitted(true);
+
+        // Smoother transition with requestAnimationFrame
+        requestAnimationFrame(() => {
+          setTimeout(() => {
+            setIsSubmitted(false);
+          }, 800); // Longer duration for a smoother effect
+        });
       } else {
         toast.error("Failed to create poll. Please try again.");
       }
@@ -116,11 +123,11 @@ export function CreatePollPopUp(): JSX.Element {
                 />
               </div>
               <button
-                className={`w-full rounded-lg ${
+                className={`w-full rounded-lg transition-all duration-500 transform ${
                   isSubmitted
-                    ? "bg-red-500 animate-bounceIn"
-                    : "bg-slate-800 hover:bg-red-500"
-                } text-slate-200 py-2 text-sm font-medium transition-all`}
+                    ? "bg-red-500 scale-105"
+                    : "bg-slate-800 hover:bg-red-500 scale-100"
+                } text-slate-200 py-2 text-sm font-medium`}
                 type="submit"
               >
                 {isSubmitted ? (
