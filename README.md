@@ -1,7 +1,3 @@
-Here's a `README.md` file for your frontend application that uses Vite and TypeScript, with details on how to set up and run the project:
-
----
-
 # Would You Rather Poll Frontend
 
 ## Description
